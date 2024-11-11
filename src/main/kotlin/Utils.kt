@@ -2,7 +2,6 @@ package `fun`.eternalblue.easyserialconnect
 
 import com.fazecast.jSerialComm.SerialPort
 import kotlinx.coroutines.*
-import javax.management.remote.JMXConnectorFactory.connect
 
 object Utils
 {
@@ -31,7 +30,7 @@ object Utils
 
     private suspend fun waitACK(serialPort: SerialPort): Boolean
     {
-        val message = "1\n"
+        val message = "ACK\n" //需要\n或\r 作为结束
         val response = StringBuilder()
         if (!serialPort.isOpen) serialPort.openPort()
         val job = CoroutineScope(Dispatchers.IO).launch()
@@ -43,7 +42,7 @@ object Utils
             var bytesRead: Int
 
             // 等待响应
-            serialPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 0, 0);
+            serialPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 0, 0)
             while (isActive)
             {
                 println("$serialPort read $buffer")
