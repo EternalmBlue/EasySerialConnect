@@ -4,6 +4,12 @@ plugins {
 
 group = "fun.eternalblue"
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8)) // 使用 Java 8
+    }
+}
+
 repositories {
     mavenCentral()
 }
