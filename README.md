@@ -29,13 +29,12 @@ void usartFunc(void)
     // 读取UART接收的数据
     if (usartReceive(&usartBuffer) > 0) 
     {
-        // 检查是否可以存储接收到的数据
         if (usartDataNum < sizeof(usartData)) 
         {
             if (usartBuffer == '\n' || usartBuffer == '\r') 
             { 
                 usartData[usartDataNum] = '\0'; 
-                usartDataNum = 0; // 重置计数器，准备接收下一条
+                usartDataNum = 0; 
                 if (strcmp(usartData,"ACK") == 0)
                 {
                   usartSend();
@@ -43,7 +42,7 @@ void usartFunc(void)
                 //lcdClearScreen(0x0000);
                 return;
             }
-            usartData[usartDataNum++] = usartBuffer; // 将接收到的字节存储到 usartData 中
+            usartData[usartDataNum++] = usartBuffer; 
         }
     }
 }
@@ -67,14 +66,14 @@ uint8_t usartReceive(uint8_t* usartBuffer)
 {
     if (HAL_UART_Receive(&huart1, usartBuffer, 1, 0) == HAL_OK) 
     {
-        return 1; // 返回成功接收到的数据字节数（1字节）
+        return 1; 
     }
-    return 0; // 如果没有成功接收，返回0
+    return 0; 
 }
 
 void usartSend(void)
 {
-    char* data = "ACK\n"; // 使用字符指针
+    char* data = "ACK\n";
     for (int i = 0; i < 4; i++)
     {
       HAL_UART_Transmit(&huart1, (uint8_t*)data+i, 1,0);
