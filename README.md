@@ -35,7 +35,7 @@ void usartFunc(void)
             { 
                 usartData[usartDataNum] = '\0'; 
                 usartDataNum = 0; 
-                if (strcmp(usartData,"ACK") == 0)
+                if (strcmp(usartData,"ACK") == 0) //ACK是PC向嵌入式设备发送的校验字符
                 {
                   usartSend();
                 }
@@ -73,7 +73,7 @@ uint8_t usartReceive(uint8_t* usartBuffer)
 
 void usartSend(void)
 {
-    char* data = "ACK\n";
+    char* data = "ACK\n"; //ACK\n是嵌入式设备向PC发送的回应字符
     for (int i = 0; i < 4; i++)
     {
       HAL_UART_Transmit(&huart1, (uint8_t*)data+i, 1,0);
