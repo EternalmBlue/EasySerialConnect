@@ -15,6 +15,8 @@ EasySerialConnect 是我学习嵌入式的UART/USART 后发现网络上缺少 �
    ```bash
    java -jar EasySerialConnect.jar
    ```
+![img.png](img.png)
+![img_1.png](img_1.png)
 ## C语言(嵌入式端)代码
 使用cubeMX配置usart
    ```C
