@@ -22,7 +22,11 @@ suspend fun main()
     println("需要嵌入式设备响应指定的message")
     println("正在等待回复")
     val result = Utils.rightSerial(ports).filter { it.value }
-    if (result.isEmpty()) println("未检测到响应的设备").also { return }
+    if (result.isEmpty()) println("未检测到响应的设备").also()
+    {
+        readln()
+        return
+    }
     result.forEach()
     {
         println("响应端口: ${it.key.systemPortName}")
