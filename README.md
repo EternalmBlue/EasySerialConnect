@@ -8,11 +8,79 @@ EasySerialConnect 是我学习嵌入式的UART/USART 后发现网络上缺少 �
 - **串口检测**：通过向嵌入式设备代码中加入指定代码逻辑(详情见下) 可以实现设备与本程序的联合 自动识别响应的嵌入式设备。
 - **数据传输**：向识别出的嵌入式设备发送字符串。
 
-## 安装
+## 使用
+需要java8以上环境
 
-1. 下载并安装 [Java JRE 11](https://www.oracle.com/java/technologies/javase-jre11-downloads.html) 或更高版本。
-2. 下载并解压 EasySerialConnect 的发布包。
-3. 在终端或命令提示符中导航到解压的文件夹，运行以下命令启动程序：
-
+## 运行
    ```bash
-   java -jar EasySerialConnect-1.0-SNAPSHOT.jar
+   java -jar EasySerialConnect.jar
+   ```
+## C语言(嵌入式端)代码
+使用cubeMX配置usart
+   ```C
+/* USER CODE BEGIN PFP */
+void usartFunc(void);
+/* USER CODE END PFP */
+//声明函数
+```
+```C
+void usartFunc(void) 
+{
+    // 读取UART接收的数据
+    if (usartReceive(&usartBuffer) > 0) 
+    {
+        // 检查是否可以存储接收到的数据
+        if (usartDataNum < sizeof(usartData)) 
+        {
+            if (usartBuffer == '\n' || usartBuffer == '\r') 
+            { 
+                usartData[usartDataNum] = '\0'; 
+                usartDataNum = 0; // 重置计数器，准备接收下一条
+                if (strcmp(usartData,"ACK") == 0)
+                {
+                  usartSend();
+                }
+                //lcdClearScreen(0x0000);
+                return;
+            }
+            usartData[usartDataNum++] = usartBuffer; // 将接收到的字节存储到 usartData 中
+        }
+    }
+}
+//以上代码放入main.c中，记得声明函数
+```
+```C
+  while (1)
+  {
+    /* USER CODE END WHILE */
+    usartFunc(); //加入到嵌入式设备主循环
+    lcdFunc();
+    keyFunc();
+    /* USER CODE BEGIN 3 */
+  }
+```
+
+初始化usart后在usart.c中加入两个方法(记得在usart.h中声明方法)
+````C
+/* USER CODE BEGIN 1 */
+uint8_t usartReceive(uint8_t* usartBuffer) 
+{
+    if (HAL_UART_Receive(&huart1, usartBuffer, 1, 0) == HAL_OK) 
+    {
+        return 1; // 返回成功接收到的数据字节数（1字节）
+    }
+    return 0; // 如果没有成功接收，返回0
+}
+
+void usartSend(void)
+{
+    char* data = "ACK\n"; // 使用字符指针
+    for (int i = 0; i < 4; i++)
+    {
+      HAL_UART_Transmit(&huart1, (uint8_t*)data+i, 1,0);
+      HAL_Delay(10);
+    }
+}
+/* USER CODE END 1 */
+````
+项目所有代码已放入<<嵌入式设备代码>> 文件中
