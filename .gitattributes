@@ -1,1 +1,2 @@
 *.c linguist-language=Kotlin
+*.h linguist-language=Kotlin
