@@ -10,6 +10,7 @@ suspend fun main()
     if (ports.isEmpty())
     {
         println("无可用串口")
+        readln()
         return
     }
     println("可用串口:")
@@ -50,6 +51,7 @@ suspend fun main()
             {
                 println("发送失败")
                 println(e.message)
+                readln()
                 return
             }
         }
