@@ -5,9 +5,9 @@ import kotlinx.coroutines.*
 
 object Utils
 {
-    suspend fun rightSerial(): MutableMap<SerialPort, Boolean>
+    //返回所有端口和所有端口的响应情况
+    suspend fun rightSerial(ports: Array<SerialPort>): MutableMap<SerialPort, Boolean>
     {
-        val ports = SerialPort.getCommPorts()
         val results = mutableMapOf<SerialPort, Boolean>()
         withContext(Dispatchers.IO)
         {
@@ -19,7 +19,6 @@ object Utils
                     async()
                     {
                         val result = waitACK(port) // 等待响应
-                        println(result.toString())
                         results[port] = result // 存储结果
                     }
                 }.awaitAll()
@@ -33,20 +32,32 @@ object Utils
         val message = "ACK\n" //需要\n或\r 作为结束
         val response = StringBuilder()
         if (!serialPort.isOpen) serialPort.openPort()
+        serialPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 3000, 3000)
+        withContext(Dispatchers.IO)
+        {
+            try
+            {
+                serialPort.outputStream.write(message.toByteArray())
+                serialPort.outputStream.flush()
+            } catch (e: Exception) {
+                return@withContext false
+            }
+        }
         val job = CoroutineScope(Dispatchers.IO).launch()
         {
-            println("$serialPort opened")
-            serialPort.outputStream.write((message).toByteArray())
-            serialPort.outputStream.flush() // 刷新输出流
-            val buffer = ByteArray(1024)
-            var bytesRead: Int
-
+            val buffer = ByteArray(2048)
+            var bytesRead: Int = -1
             // 等待响应
-            serialPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 0, 0)
+            serialPort.baudRate = 9600
             while (isActive)
             {
-                println("$serialPort read $buffer")
-                bytesRead = serialPort.inputStream.read(buffer)
+                try
+                {
+                    bytesRead = serialPort.inputStream.read(buffer)
+                } catch (_: Exception)
+                {
+
+                }
                 if (bytesRead > 0)
                 {
                     response.append(String(buffer, 0, bytesRead))
@@ -57,20 +68,14 @@ object Utils
                 }
             }
         }
-        delay(2000)
-        job.cancel()
-        return if (response.toString().trim() == message)
+        delay(4000)
+        job.cancelAndJoin()
+        return if (response.toString() == "ACK\n")
         {
-            true
-        } else
+            true .also { if(serialPort.isOpen) serialPort.closePort() }
+        }else
         {
-            println("Operation timed out for port: ${serialPort.systemPortName}") // 输出超时信息
-            return false // 超时或失败则返回 false
-        }.also {
-            if (serialPort.isOpen)
-            {
-                serialPort.closePort() // 确保在完成后关闭串口
-            }
+            false .also { if(serialPort.isOpen) serialPort.closePort() }
         }
     }
 }
